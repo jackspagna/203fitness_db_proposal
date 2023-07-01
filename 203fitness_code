@@ -1,0 +1,498 @@
+-- Drop Tables ---------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS Addresses;
+DROP TABLE IF EXISTS Locations;
+DROP TABLE IF EXISTS People;
+DROP TABLE IF EXISTS Employees;
+DROP TABLE IF EXISTS Members;
+DROP TABLE IF EXISTS MembershipTypes;
+DROP TABLE IF EXISTS Discounts;
+DROP TABLE IF EXISTS Memberships;
+DROP TABLE IF EXISTS Amenities;
+DROP TABLE IF EXISTS Classes;
+DROP TABLE IF EXISTS AmenityAccess;
+DROP TABLE IF EXISTS ClassAccess;
+DROP TABLE IF EXISTS AmenityLocations;
+DROP TABLE IF EXISTS ClassOffered;
+DROP TABLE IF EXISTS Equipment;
+DROP TABLE IF EXISTS LocationEquipment;
+
+-- Create Tables ---------------------------------------------------------------------------------
+
+-- Addresses
+CREATE TABLE Addresses (
+   addressId		int not null,
+   street		text,
+   city			text,
+   stateAbbrev		text,
+   country		text,
+ primary key(addressId) );
+
+-- Locations
+CREATE TABLE Locations (
+   locationId		int not null,
+   addressId		int not null references Addresses(addressId),
+   openDate		date,
+   capacity		int,
+ primary key(locationId) );
+
+-- People
+CREATE TABLE People (
+   peopleId		int not null,
+   addressId		int references Addresses(addressId),
+   firstName		text,
+   lastName		text,
+   birthDate		date,
+   phone		text,
+   email			text,
+ primary key(peopleId) );
+
+-- Employees
+CREATE TABLE Employees (
+   peopleId		int not null references People(peopleId),
+   locationId		int not null references Locations(locationId),
+   jobTitle		text,
+   jobDescrip		text,
+   dateStarted		date,
+   hourlyPay		numeric,
+   yearlyPay		numeric,
+ primary key(peopleId) );
+
+-- Members
+CREATE TABLE Members (
+   peopleId		int not null references People(peopleId),
+   memberSince	date,
+   username		text,
+   password		text,
+ primary key(peopleId) );
+
+-- MembershipTypes
+CREATE TABLE MembershipTypes (
+   typeId		int not null,
+   length		text,
+   type			text,
+   downPay		numeric,
+   monthlyPay		numeric,
+   payments		int,
+ primary key(typeId) );
+
+-- Discounts
+CREATE TABLE Discounts (
+   discountId		int not null,
+   description		text,
+   discountPct		numeric,
+ primary key(discountId) );
+
+-- Memberships
+CREATE TABLE Memberships (
+   peopleId		int not null references People(peopleId),
+   typeId		int not null references MembershipTypes(typeId),
+   discountId		int not null references Discounts(discountId),
+   startDate		date,
+   endDate		date,
+ primary key(peopleId, typeId, discountId) );
+
+-- Amenities
+CREATE TABLE Amenities (
+   amenId		int not null,
+   description		text,
+ primary key(amenId) );
+
+-- Classes
+CREATE TABLE Classes (
+   classId		int not null,
+   description		text,
+ primary key(classId) );
+
+-- AmenityAccess
+CREATE TABLE AmenityAccess (
+   typeId		int not null references MembershipTypes(typeId),
+   amenId		int not null references Amenities(amenId),
+ primary key(typeId, amenId) );
+
+-- ClassAccess
+CREATE TABLE ClassAccess (
+   typeId		int not null references MembershipTypes(typeId),
+   classId		int not null references Classes(classId),
+ primary key(typeId, classId) );
+
+-- LocationAmenities
+CREATE TABLE LocationAmenities (
+   locationId		int not null references Locations(locationId),
+   amenId		int not null references Amenities(amenId),
+ primary key(locationId, amenId) );
+
+-- ClassOffered
+CREATE TABLE ClassOffered (
+   classId		int not null references Classes(classId),
+   locationId		int not null references Locations(locationId),
+   instructor		int references Employees(peopleId),
+ primary key(classId, locationId) );
+
+-- Equipment
+CREATE TABLE Equipment (
+   equipId		int not null,
+   description		text,
+   unitCost		numeric,
+ primary key(equipId) );
+
+-- LocationEquipment
+CREATE TABLE LocationEquipment (
+   equipId		int not null references Equipment(equipId),
+   locationId		int not null references Locations(locationId),
+   quantity		int,
+ primary key(equipId, locationId, quantity) );
+
+-- Insert Sample Data ---------------------------------------------------------------------------------
+
+-- Addresses
+INSERT INTO Addresses (addressId, street, city, stateAbbrev, country)
+VALUES
+ (01, '1302 Sudden Valley Ln', 'Orange', 'CT', 'United States'),
+ (02, '687 Post Rd', 'Fairfield', 'CT', 'United States'),
+ (03, '220 Field Point Rd', 'Greenwich', 'CT', 'United States'),
+ (04, '42 Sunnyvale Dr', 'Larchmont', 'NY', 'United States'),
+ (05, '671 Rosebrook Rd', 'New Canaan', 'CT', 'United States'),
+ (06, '2131 Bronson Rd', 'Fairfield', 'CT', 'United States'),
+ (07, '148 Broad St', 'Stamford', 'CT', 'United States'),
+ (08, '373 Long Lots Rd', 'Westport', 'CT', 'United States'),
+ (09, '504 Danbury Rd', 'Wilton', 'CT', 'United States'),
+ (10, '16 Tompkins Ln', 'Hopewell Junction', 'NY', 'United States'),
+ (11, '582 Evergreen Ave', 'Westport', 'CT', 'United States'),
+ (12, '118 Maple St', 'Milford', 'CT', 'United States'),
+ (13, '59 Bailey Ave', 'Ridgefield', 'CT', 'United States');
+
+-- Locations
+INSERT INTO Locations (locationId, addressId, openDate, capacity)
+VALUES
+ (01, 02, '2001-05-22', 400),
+ (02, 03, '2010-01-19', 250),
+ (03, 07, '2013-04-30', 320),
+ (04, 09, '2018-10-03', 300),
+ (05, 13, '2009-07-15', 200);
+
+-- People
+INSERT INTO People (peopleId, addressId, firstName, lastName, birthDate, phone, email)
+VALUES
+ (01, 04, 'Ricky', 'LaFleur', '1971-03-20', '(914) 884-0113', 'randylahey999@swearnet.com'),
+ (02, 08, 'Ellen', 'Ripley', '1949-10-08', '(203) 556-7879', 'alienkiller79@gmail.com'),
+ (03, 05, 'Alan', 'Labouseur', '1990-09-17', '(203) 221-9005', 'alan.labouseur@gmail.com'),
+ (04, 11, 'Jacob', 'deGrom', '1988-06-19', '(203) 418-3221', 'degrominant48@gmail.com'),
+ (05, 06, 'David', 'Bowman', '1936-05-30', '(203) 775-2987', 'openthepodbaydoors@nasa.gov'),
+ (06, 12, 'Darren', 'Waller', '1992-09-13', '(203) 417-8380', 'rackwall83@gmail.com'),
+ (07, 10, 'Marion', 'Crane', '1927-07-06', '(845) 590-2177', 'marian.crane60@gmail.com'),
+ (08, 01, 'Michael', 'Bluth', '1969-01-14', '(203) 265-0312', 'michaelbluth@bluth.com'),
+ (09, 01, 'Tobias', 'Funke', '1964-04-04', '(203) 505-3794', 'tobiasfunke.actor@aol.com');
+
+-- Employees
+INSERT INTO Employees (peopleId, locationId, jobTitle, jobDescrip, dateStarted, hourlyPay, yearlyPay)
+VALUES
+ (01, 02, 'Cleaning Associate', 'Routinely cleans gym equipment and locker rooms.', '2020-03-27', 11.50, NULL),
+ (03, 03, 'Gym Manager', 'Oversees gym safety and daily operations.', '2014-04-11', NULL, 80000.00),
+ (05, 01, 'Personal Trainer', 'Assists members in their fitness journeys.', '2017-12-01', NULL, 54875.00),
+ (07, 05, 'Receptionist', 'Greets customers upon walking in and answers the phone.', '2019-08-07', 15.25, NULL),
+ (08, 01, 'Gym Manager', 'Oversees gym safety and daily operations.', '2018-09-30', NULL, 64800.00);
+
+-- Members
+INSERT INTO Members (peopleId, memberSince, username, password)
+VALUES
+ (02, '2017-04-10', 'Ellen_Ripley', 'ripleylovesjonesy'),
+ (04, '2012-08-26', 'CyGrom48', 'back2backcyyoungs'),
+ (06, '2020-02-03', 'RackWall', 'Raidernation87'),
+ (09, '2014-10-10', 'TheBlueMan', 'iwearcutoffs1');
+
+-- MembershipTypes
+INSERT INTO MembershipTypes (typeId, length, type, downPay, monthlyPay, payments)
+VALUES
+ (01, 'Day Pass', 'Standard', 10.00, NULL, 01),
+ (02, '1 Week', 'Standard', 20.00, NULL, 01),
+ (03, '2 Weeks', 'Standard', 32.00, NULL, 01),
+ (04, '1 Month', 'Standard', 50.00, NULL, 01),
+ (05, '2 Months', 'Standard', NULL, 35.00, 02),
+ (06, '2 Months', 'Gold', NULL, 38.50, 02),
+ (07, '4 Months', 'Standard', NULL, 30.00, 04),
+ (08, '4 Months', 'Gold', NULL, 33.00, 04),
+ (09, '6 Months', 'Standard', NULL, 26.00, 06),
+ (10, '6 Months', 'Gold', NULL, 28.60, 06),
+ (11, '6 Months', 'Platinum', NULL, 31.20, 06),
+ (12, '12 Months', 'Standard', NULL, 20.00, 12),
+ (13, '12 Months', 'Gold', NULL, 22.00, 12),
+ (14, '12 Months', 'Platinum', NULL, 24.00, 12);
+
+-- Discounts
+INSERT INTO Discounts (discountId, description, discountPct)
+VALUES
+ (01, 'No Discount', 1.00),
+ (02, 'Student Discount', 0.90),
+ (03, 'Senior Discount', 0.85),
+ (04, '2 Year Loyalty', 0.96),
+ (05, '5 Year Loyalty', 0.92),
+ (06, '10 Year Loyalty', 0.88);
+
+-- Memberships
+INSERT INTO Memberships (peopleId, typeId, discountId, startDate, endDate)
+VALUES
+ (02, 08, 03, '2020-11-13', '2021-03-13'),
+ (04, 14, 05, '2020-07-19', '2021-07-19'),
+ (06, 04, 01, '2020-11-28', '2020-12-28'),
+ (09, 09, 05, '2020-09-02', '2021-03-02');
+
+-- Amenities
+INSERT INTO Amenities (amenId, description)
+VALUES
+ (01, 'Weight Room'),
+ (02, 'Locker Room'),
+ (03, 'Yoga Room'),
+ (04, 'Pool'),
+ (05, 'Spin Studio'),
+ (06, 'Physical Therapy Room'),
+ (07, 'Personal Training Room'),
+ (08, 'Multi-Purpose Room'),
+ (09, 'Cardio Zone');
+
+-- Classes
+INSERT INTO Classes (classId, description)
+VALUES
+ (01, 'Personal Strength Training'),
+ (02, 'Yoga'),
+ (03, 'Spin Class'),
+ (04, 'Aerobics'),
+ (05, 'Aquatic Fitness'),
+ (06, 'Basics of Nutrition'),
+ (07, 'Massage Therapy');
+
+-- AmenityAccess
+INSERT INTO AmenityAccess (typeId, amenId)
+VALUES
+ (04, 01),
+ (04, 02),
+ (04, 03),
+ (04, 08),
+ (04, 09),
+ (08, 01),
+ (08, 02),
+ (08, 03),
+ (08, 04),
+ (08, 05),
+ (08, 08),
+ (08, 09);
+
+-- ClassAccess
+INSERT INTO ClassAccess (typeId, classId)
+VALUES
+ (09, 01),
+ (09, 02),
+ (09, 04),
+ (09, 06),
+ (14, 01),
+ (14, 02),
+ (14, 03),
+ (14, 04),
+ (14, 05),
+ (14, 06),
+ (14, 07);
+
+-- LocationAmenities
+INSERT INTO LocationAmenities (locationId, amenId)
+VALUES
+ (01, 03),
+ (01, 04),
+ (01, 05),
+ (01, 06),
+ (01, 07),
+ (01, 08),
+ (02, 05),
+ (02, 06),
+ (02, 07);
+
+-- ClassOffered
+INSERT INTO ClassOffered (classId, locationId, instructor)
+VALUES
+ (03, 04, NULL),
+ (06, 05, NULL),
+ (01, 01, 05),
+ (04, 03, NULL),
+ (04, 01, NULL);
+
+-- Equipment
+INSERT INTO Equipment (equipId, description, unitCost)
+VALUES
+ (01, 'NordicTrack Commercial 1750 Treadmill', 1299.00),
+ (02, 'TRX Exercise Mat', 24.95),
+ (03, 'Top Fitness Rubber Hex Dumbbell Set', 1100.00),
+ (04, 'ETHOS Power Rack 1.0', 749.99),
+ (05, 'VIZIO 40" Class D-Series HD TV', 299.99),
+ (06, 'Wall Mounted Hand Sanitizer Dispenser', 60.00);
+
+-- LocationEquipment
+INSERT INTO LocationEquipment (equipId, locationId, quantity)
+VALUES
+ (01, 02, 16),
+ (01, 03, 10),
+ (02, 02, 25),
+ (02, 05, 18),
+ (04, 02, 04),
+ (04, 03, 03),
+ (04, 05, 05),
+ (05, 03, 08),
+ (05, 05, 11);
+
+-- Views ---------------------------------------------------------------------------------
+
+-- Managers
+CREATE VIEW Managers (peopleId, locationId, firstName, lastName, yearlyPay)
+AS
+select p.peopleId, e.locationId, p.firstName, p.lastName, e.yearlyPay
+from People p inner join Employees e on p.peopleId = e.peopleId
+where e.jobTitle = 'Gym Manager';
+
+-- Contact Instructors
+CREATE VIEW ContactInstructors (firstName, lastName, phone, email)
+AS
+select p.firstName, p.lastName, p.phone, p.email
+from People p inner join Employees e
+inner join ClassOffered co on co.instructor = e.peopleId 
+on p.peopleId = e.peopleId;
+
+-- PlatinumMembers
+CREATE VIEW PlatinumMembers (peopleId, firstName, lastName)
+AS
+select p.peopleId, p.firstName, p.lastName
+from People p inner join Members m 
+inner join Memberships me 
+inner join MembershipTypes t 
+on me.typeId = t.typeId
+on m.peopleId = me.peopleId
+on p.peopleId = m.peopleId
+where t.type = 'Platinum';
+
+-- Reports ---------------------------------------------------------------------------------
+
+-- Total Equipment Cost
+select sum(e.unitCost * le.quantity) as totalEquipCost
+from Equipment e inner join LocationEquipment le on e.equipId = le.equipId;
+
+-- Total Membership Revenue
+select m.peopleId, (case when t.typeId <= 4 then t.downPay * t.payments * d.discountPct
+		        else t.monthlyPay * t.payments * d.discountPct end) as membershipRev
+from Discounts d inner join Memberships m
+inner join MembershipTypes t on m.typeId = t.typeId
+on d.discountId = m.discountId;
+
+-- Memberships Ending Soon
+select p.firstName, p.lastName
+from People p inner join Members me
+inner join Memberships m on me.peopleId = m.peopleId
+on p.peopleId = me.peopleId
+where m.endDate <= current_date + '1 month'::interval;
+
+-- Stored Procedures ---------------------------------------------------------------------------------
+
+-- FindLoginInfo
+create or replace function FindLoginInfo(text, REFCURSOR) returns refcursor as 
+$$
+declare
+   memberEmail   text    := $1;
+   resultset   REFCURSOR := $2;
+begin
+   open resultset for 
+      select m.username, m.password
+	  from People p inner join Members m on p.peopleId = m.peopleId
+	  where memberEmail = p.email;
+   return resultset;
+end;
+$$ 
+language plpgsql;
+
+select FindLoginInfo('tobiasfunke.actor@aol.com', 'results');
+Fetch all from results;
+
+-- MemberAmenities
+create or replace function MemberAmenities(text, text, REFCURSOR) returns refcursor as 
+$$
+declare
+   nameFirst      text             := $1;
+   nameLast      text             := $2;
+   resultset   REFCURSOR := $3;
+begin
+   open resultset for 
+      select a.*
+      from People p inner join Members me
+	  inner join Memberships m inner join MembershipTypes t
+	  inner join AmenityAccess aa inner join Amenities a
+	  on aa.amenId = a.amenId on t.typeId = aa.typeId
+	  on m.typeId = t.typeId on me.peopleId = m.peopleId
+	  on p.peopleId = me.peopleId
+	  where nameFirst = p.firstName and nameLast = p.lastName;
+   return resultset;
+end;
+$$ 
+language plpgsql;
+
+select MemberAmenities('Ellen', 'Ripley', 'results');
+Fetch all from results;
+
+-- Triggers ---------------------------------------------------------------------------------
+
+-- CheckAge
+create or replace function CheckAge()
+returns trigger as
+$$
+begin
+  if new.birthDate > current_date - '14 years'::interval
+  then delete from People where birthDate = new.birthDate;
+  end if;
+  return new;
+end;
+$$
+language plpgsql;
+
+create trigger CheckAge
+after insert on People
+for each row
+execute procedure CheckAge();
+
+INSERT INTO People (peopleId, addressId, firstName, lastName, birthDate, phone, email)
+VALUES
+ (10, 04, 'Moe', 'LaFleur', '2012-11-04', '(203) 775-7822', 'themotel@swearnet.com');
+
+-- CheckPay
+create or replace function CheckPay()
+returns trigger as
+$$
+begin
+  if new.hourlyPay < 12.00
+  then delete from Employees where hourlyPay = new.hourlyPay;
+  end if;
+  return new;
+end;
+$$
+language plpgsql;
+
+create trigger CheckPay
+after insert on Employees
+for each row
+execute procedure CheckPay();
+
+INSERT INTO People (peopleId, addressId, firstName, lastName, birthDate, phone, email)
+VALUES
+ (11, 04, 'Jim', 'Lahey', '1946-04-12', '(203) 801-3005', 'superivsoroftheyear@swearnet.com');
+
+INSERT INTO Employees (peopleId, locationId, jobTitle, jobDescrip, dateStarted, hourlyPay, yearlyPay)
+VALUES
+ (11, 02, 'Gym Supervisor', 'Works with his assistant, Randy.', '2018-08-14', 10.75, NULL);
+
+-- Security ---------------------------------------------------------------------------------
+
+-- Administrator
+create role Administrator;
+grant all on all tables in schema public to Administrator;
+
+-- GymManager
+create role GymManager;
+grant all on Employees, Classes, ClassOffered, Equipment to GymManager;
+grant select on Addresses, Memberships to GymManager;
+
+-- Instructor
+create role Instructor;
+grant select, update on Classes, ClassOffered to Instructor;
